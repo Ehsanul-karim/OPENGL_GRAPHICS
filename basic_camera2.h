@@ -173,14 +173,40 @@ private:
         // Combine rotations: yaw -> pitch -> roll
         glm::mat4 rotation = rollRotation * pitchRotation * yawRotation;
 
-        // Apply rotation to the camera's front direction
+        // Apply rotation to the direction vector (forward direction)
         glm::vec4 transformedDirection = rotation * glm::vec4(direction, 0.0f);
         direction = glm::normalize(glm::vec3(transformedDirection));
 
-        // Apply rotation to the camera's up vector
+        // Apply rotation to the up vector
         glm::vec4 transformedUp = rotation * glm::vec4(V, 0.0f);
         V = glm::normalize(glm::vec3(transformedUp));
+
+        // Update the lookAt vector based on the direction
     }
+
+
+    //void updateCameraVectors()
+    //{
+    //    // Create the yaw rotation matrix (rotation around the Y-axis)
+    //    glm::mat4 yawRotation = glm::rotate(glm::mat4(1.0f), glm::radians(Yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    //    // Create the pitch rotation matrix (rotation around the X-axis)
+    //    glm::mat4 pitchRotation = glm::rotate(glm::mat4(1.0f), glm::radians(Pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    //    // Create the roll rotation matrix (rotation around the Z-axis)
+    //    glm::mat4 rollRotation = glm::rotate(glm::mat4(1.0f), glm::radians(Roll), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    //    // Combine rotations: yaw -> pitch -> roll
+    //    glm::mat4 rotation = rollRotation * pitchRotation * yawRotation;
+
+    //    // Apply rotation to the camera's front direction
+    //    glm::vec4 transformedDirection = rotation * glm::vec4(direction, 0.0f);
+    //    direction = glm::normalize(glm::vec3(transformedDirection));
+
+    //    // Apply rotation to the camera's up vector
+    //    glm::vec4 transformedUp = rotation * glm::vec4(V, 0.0f);
+    //    V = glm::normalize(glm::vec3(transformedUp));
+    //}
 
 };
 

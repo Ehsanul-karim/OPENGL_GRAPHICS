@@ -15,7 +15,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
-#include "basic_camera2.h"
+//#include "basic_camera2.h"
+#include "camera.h"
 
 #include <iostream>
 #include <vector>
@@ -35,6 +36,7 @@ void processInput(GLFWwindow* window);
 //void generateCircleVertices(std::vector<float>& vertices);
 
 // draw object functions
+void drawCylinder(unsigned int& VAO_C, Shader& lightingShader, glm::vec3 color, glm::mat4 model, std::vector<unsigned int>& indices);
 void drawCube(Shader shaderProgram, unsigned int VAO, glm::mat4 parentTrans, float posX = 0.0, float posY = 0.0, float posZ = 0.0, float rotX = 0.0, float rotY = 0.0, float rotZ = 0.0, float scX = 1.0, float scY = 1.0, float scZ = 1.0);
 void drawCylender(Shader shaderProgram, unsigned int VAO, glm::mat4 parentTrans, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scX, float scY, float scZ);
 void drawTable(Shader ourShader, glm::mat4 identityMatrix, unsigned int VAO, glm::mat4 Model_Center);
@@ -51,6 +53,12 @@ glm::vec3 computeSurfaceNormal(const glm::vec3& a, const glm::vec3& b, const glm
 void generateCylinder(float radius, float height, int segments, std::vector<float>& vertices, std::vector<unsigned int>& indices);
 void generateCone(float radius, float height, int segments, std::vector<float>& vertices, std::vector<unsigned int>& indices);
 void generateSphere(float radius, int sectorCount, int stackCount, std::vector<float>& vertices, std::vector<unsigned int>& indices);
+void drawBookShelf(Shader lightingShader, glm::mat4 identityMatrix, unsigned int VAO, glm::mat4 Model_Center);
+void drawTV(Shader lightingShader, glm::mat4 identityMatrix, unsigned int VAO, glm::mat4 Model_Center);
+void home_wall_door(Shader  ourShader, Shader  lightingShader, glm::mat4 identityMatrix, unsigned int VAO, unsigned int VAO2, glm::mat4 Model_Modify, float speed);
+void a_home(Shader  ourShader, Shader  lightingShader, glm::mat4 identityMatrix, unsigned int VAO, unsigned int VAO2, glm::mat4 Model_Modify, float speed);
+void drawCarPart(Shader lightingShader, unsigned int VAO, unsigned int VAO2, glm::mat4 identityMatrix, glm::mat4 modelCenter, glm::mat4 altogether, Shader ourShader);
+void drawCarpart2(Shader lightingShader, unsigned int VAO, unsigned int VAO2, glm::mat4 identityMatrix, glm::mat4 modelCenter, glm::mat4 altogether);
 
 
 // settings
@@ -79,10 +87,14 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-float eyeX = 0.0, eyeY = -5.0, eyeZ = 3.0;
-float lookAtX = 0.0, lookAtY = 0.0, lookAtZ = 0.0;
-glm::vec3 V = glm::vec3(0.0f, 1.0f, 0.0f);
-BasicCamera basic_camera(eyeX, eyeY, eyeZ, lookAtX, lookAtY, lookAtZ, V);
+//float eyeX = 0.0, eyeY = -5.0, eyeZ = 3.0;
+//float lookAtX = 0.0, lookAtY = 0.0, lookAtZ = 0.0;
+//glm::vec3 V = glm::vec3(0.0f, 1.0f, 0.0f);
+//BasicCamera basic_camera(eyeX, eyeY, eyeZ, lookAtX, lookAtY, lookAtZ, V);
+
+Camera camera(glm::vec3(0.0f, -5.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), 0.0f, 90.0f);
+
+//camera(glm::vec3(-1.0f, 1.0f, 1.0f));
 
 // timing
 float deltaTime = 0.0f;    // time between current frame and last frame
@@ -94,13 +106,15 @@ const float PI = 3.14f;
 const float ROTATION_STEP = 1.0f; // Step in radians
 
 bool fanon;
+float car_wheel_anglee = 0.0f;
+
 
 
 // lighting
 // positions of the point lights
 glm::vec3 pointLightPositions[] = {
-    glm::vec3(-0.75f,  1.5f,  1.0f),
-    glm::vec3(-1.40f,  1.5f,  1.0f)
+    glm::vec3(-1.75f,  0.0f,  2.65f),
+    glm::vec3(1.475f,  0.0f,  2.65f)
 
 };
 PointLight pointlight1(
@@ -126,6 +140,7 @@ PointLight pointlight2(
     2       //�light�number
 );
 
+
 //directional light
 bool directionLightOn = true;
 bool directionalAmbient = true;
@@ -145,6 +160,18 @@ bool specularToggle = true;
 bool point1 = true;
 bool point2 = true;
 
+bool moveCar = false;
+bool CarHeadLight = false;
+
+
+float carlightleftx = -2.1, carlightlefty = -4.5, carlightleftz = 0.35;
+float carlightrightx = -2.1, carlightrighty = -2.7, carlightrightz = 0.35;
+
+
+glm::vec3 carLightPositions[] = {
+glm::vec3(carlightleftx, carlightlefty, carlightleftz), // Left car light
+glm::vec3(carlightrightx, carlightrighty, carlightrightz)  // Right car light
+};
 
 
 int main()
@@ -351,6 +378,28 @@ int main()
          28, 0, 29,   0, 1, 29,
     };
 
+    // sky box normal device coordinates
+    GLfloat SKYBOX_VERTICES[] = {
+      -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
+      1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
+
+      -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
+      -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
+
+      1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
+
+      -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
+
+      -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
+
+      -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
+      1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f
+    };
+
+
     // Generate cylinder vertices and indices
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
@@ -361,7 +410,7 @@ int main()
     std::vector<unsigned int> indices_k;
     generateCone(1.0f, 2.0f, 36, vertices_k, indices_k);
 
-    // Generate sphere data
+    // Generate data
     std::vector<float> vertices_s;
     std::vector<unsigned int> indices_s;
     generateSphere(1.0f, 36, 18, vertices_s, indices_s);
@@ -424,6 +473,19 @@ int main()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));  // Normal
     glEnableVertexAttribArray(1);
 
+    glBindVertexArray(0);
+
+
+    unsigned int skyboxVAO, skyboxVBO;
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(SKYBOX_VERTICES), &SKYBOX_VERTICES, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
     //glBindVertexArray(VAO2);
@@ -515,10 +577,37 @@ int main()
 
 
 
+    //// Define car light point lights
+    //PointLight carLightLeft(
+    //    carLightPositions[0].x, carLightPositions[0].y, carLightPositions[0].z, // Position
+    //    0.05f, 0.05f, 0.05f,  // Ambient
+    //    0.9f, 0.9f, 0.9f,     // Diffuse
+    //    1.0f, 1.0f, 1.0f,     // Specular
+    //    1.0f,   // k_c
+    //    0.09f,  // k_l
+    //    0.032f, // k_q
+    //    3       // Light number (3rd point light)
+    //);
+
+    //PointLight carLightRight(
+    //    carLightPositions[1].x, carLightPositions[1].y, carLightPositions[1].z, // Position
+    //    0.05f, 0.05f, 0.05f,  // Ambient
+    //    0.9f, 0.9f, 0.9f,     // Diffuse
+    //    1.0f, 1.0f, 1.0f,     // Specular
+    //    1.0f,   // k_c
+    //    0.09f,  // k_l
+    //    0.032f, // k_q
+    //    4       // Light number (4th point light)
+    //);
+
+
+
+
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 
     //ourShader.use();
+    float moving = 0.0;
 
     float speed = 0.0;
     glm::vec3 color;
@@ -546,11 +635,21 @@ int main()
 
         // be sure to activate shader when setting uniforms/drawing objects
          //lightingShader.use();
-        lightingShader.setVec3("viewPos", basic_camera.eye);
+
+
+
+
+
+
+
+
+        //lightingShader.setVec3("viewPos", basic_camera.eye);
+        lightingShader.setVec3("viewPos", camera.Position);
 
         //point lights set up
         pointlight1.setUpPointLight(lightingShader);
         pointlight2.setUpPointLight(lightingShader);
+
 
         //directional light set up
         lightingShader.setVec3("directionalLight.direction", 0.0f, 0.0f, -0.5f);
@@ -559,17 +658,17 @@ int main()
         lightingShader.setVec3("directionalLight.specular", 1.0f, 1.0f, 1.0f);
         lightingShader.setBool("directionLightOn", directionLightOn);
 
-        //spot light set up
-        lightingShader.setVec3("spotLight.position", 0.0f, 0.0f, .80f);
-        lightingShader.setVec3("spotLight.direction", 0.0f, -1.0f, 0.0f);
-        lightingShader.setVec3("spotLight.ambient", 0.5f, 0.5f, 0.5f);
-        lightingShader.setVec3("spotLight.diffuse", 0.8f, 0.8f, 0.8f);
-        lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        lightingShader.setFloat("spotLight.k_c", 1.0f);
-        lightingShader.setFloat("spotLight.k_l", 0.09);
-        lightingShader.setFloat("spotLight.k_q", 0.032);
-        lightingShader.setFloat("spotLight.cos_theta", glm::cos(glm::radians(50.0f)));
-        lightingShader.setBool("spotLightOn", spotLightOn);
+        ////spot light set up
+        //lightingShader.setVec3("spotLight.position", 0.0f, 0.0f, 0.8f);
+        //lightingShader.setVec3("spotLight.direction", 0.0f, -1.0f,0.0f);
+        //lightingShader.setVec3("spotLight.ambient", 0.5f, 0.5f, 0.5f);
+        //lightingShader.setVec3("spotLight.diffuse", 0.8f, 0.8f, 0.8f);
+        //lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        //lightingShader.setFloat("spotLight.k_c", 1.0f);
+        //lightingShader.setFloat("spotLight.k_l", 0.09);
+        //lightingShader.setFloat("spotLight.k_q", 0.032);
+        //lightingShader.setFloat("spotLight.cos_theta", glm::cos(glm::radians(50.0f)));
+        //lightingShader.setBool("spotLightOn", spotLightOn);
 
 
         //handle for changes in directional light directly from shedder
@@ -594,6 +693,8 @@ int main()
             }
         }
 
+      
+
 
 
         // pass projection matrix to shader (note that in this case it could change every frame)
@@ -608,7 +709,8 @@ int main()
 
 
         // camera/view transformation
-        glm::mat4 view = basic_camera.createViewMatrix();
+        //glm::mat4 view = basic_camera.createViewMatrix();
+        glm::mat4 view = camera.GetViewMatrix();
 
         ourShader.setMat4("view", view);
         constantShader.setMat4("view", view);
@@ -619,217 +721,189 @@ int main()
         glm::mat4 identityMatrix = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
         //drawCube(ourShader, VAO, identityMatrix, translate_X, translate_Y, translate_Z, rotateAngle_X, rotateAngle_Y, rotateAngle_Z, scale_X, scale_Y, scale_Z);
 
-        glm::mat4 translateMatrix, rotationMatrix, scaleMatrix, modelCenter, model;
+        glm::mat4 translateMatrix, rotationMatrix, scaleMatrix, modelCenter, model, carWheelMatrix;
+
+        model = identityMatrix;
+        a_home(ourShader, lightingShader, identityMatrix, VAO, VAO2, model, speed);
+
+        //cone
+        scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
+        translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.5f, 1.3f, 0.425f));
+        float rotateConeAngle = 90;
+        rotationMatrix = glm::rotate(identityMatrix, glm::radians(rotateConeAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = translateMatrix * rotationMatrix * scaleMatrix;
+        drawCylinder(VAO_K, lightingShader, glm::vec3(0.0f, 1.0f, 0.0f), model, indices_k);
 
 
-        modelCenter = glm::scale(identityMatrix, glm::vec3(0.7, 0.7, 1));
+        //spheare
 
-        drawTableandChair(lightingShader, identityMatrix, VAO, modelCenter);
-
-        modelCenter = identityMatrix;
-
-        drawSofa(lightingShader, identityMatrix, VAO, modelCenter);
-        //almira
-
-        //rotationMatrix = glm::rotate(identityMatrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        rotationMatrix = myRotate(glm::radians(-90.0f), glm::vec3(0.0, 0.0, 1.0));
-
-        translateMatrix = glm::translate(identityMatrix, glm::vec3(.59f, 0.1f, 0.0f));
-        modelCenter = translateMatrix * rotationMatrix * identityMatrix;
-
-        drawAlmira(lightingShader, identityMatrix, VAO, modelCenter, 1);
-
-        //wall
-
-        scaleMatrix = glm::scale(identityMatrix, glm::vec3(9, 8, 2.5));
-        translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.8f, +1.0f, 0.0f));
-        model = glm::translate(identityMatrix, glm::vec3(-2.0f, -1.5f, 0.0f));
-
-        modelCenter = model * scaleMatrix * translateMatrix;
-
-        drawAlmira(lightingShader, identityMatrix, VAO, modelCenter, 0);
-
-        // tv cavinet
-
-        //rotationMatrix = glm::rotate(identityMatrix, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        rotationMatrix = myRotate(glm::radians(-180.0f), glm::vec3(0.0, 0.0, 1.0));
-
-        scaleMatrix = glm::scale(identityMatrix, glm::vec3(4, 1.1, .35));
-        translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.8f, +1.0f, 0.0f));
-        model = glm::translate(identityMatrix, glm::vec3(1.0f, 1.5f, 0.0f));
-
-        modelCenter = model * scaleMatrix * rotationMatrix * translateMatrix;
-
-        drawAlmira(lightingShader, identityMatrix, VAO, modelCenter, 1);
+        scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
+        translateMatrix = glm::translate(identityMatrix, glm::vec3(1.45f, 1.20f, 1.3f));
+        model = translateMatrix * scaleMatrix ;
+        drawCylinder(VAO_S, lightingShader, glm::vec3(0.0f, 0.0f, 1.0f), model, indices_s);
 
 
-        //tv
+        float rotateAngle = 90;
+        glm::mat4 rotationZ = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+        rotateAngle = 90;
+        glm::mat4 rotationY = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+        translateMatrix = glm::translate(identityMatrix, glm::vec3(0.0, -4.0, 0.25));
+        scaleMatrix = glm::scale(identityMatrix, glm::vec3(3.0f, 3.0f, 3.0f));
 
-        lightingShader.use();
+        model = translateMatrix * rotationZ *rotationY * scaleMatrix;
 
-        translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.2f, 1.45f, 0.475f));
-
-        scaleMatrix = glm::scale(identityMatrix, glm::vec3(1.6, 0.05, 1));
-
-        model = translateMatrix * scaleMatrix;
-
-        color = glm::vec3(0.294f, 0.23f, 0.18f);
-
-        lightingShader.setVec3("material.ambient", color);
-        lightingShader.setVec3("material.diffuse", color);
-        lightingShader.setVec3("material.specular", color);
-        lightingShader.setFloat("material.shininess", 32.0f);
-
-        lightingShader.setMat4("model", model);
-        //ourShader.setVec4("color", glm::vec4(0.294f, 0.23f, 0.18f, 1.0f));
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-
-        //book shelf 1
-
-        lightingShader.use();
-
-
-        translateMatrix = glm::translate(identityMatrix, glm::vec3(1.395f, 0.0f, 0.5f));
-
-        scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.4, 1.4, 0.05));
-
-        model = translateMatrix * scaleMatrix;
-
-        color = glm::vec3(0.6f, 0.243f, 0.047f);
-
-        lightingShader.setVec3("material.ambient", color);
-        lightingShader.setVec3("material.diffuse", color);
-        lightingShader.setVec3("material.specular", color);
-        lightingShader.setFloat("material.shininess", 32.0f);
-
-        lightingShader.setMat4("model", model);
-        //ourShader.setVec4("color", glm::vec4(0.6f, 0.243f, 0.047f, 1.0f));
-
-
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-
-
-        //book shelf 2
-
-        lightingShader.use();
-
-        translateMatrix = glm::translate(identityMatrix, glm::vec3(1.395f, 0.0f, 0.8f));
-
-        scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.4, 1.4, 0.05));
-
-        model = translateMatrix * scaleMatrix;
-
-        color = glm::vec3(0.6f, 0.243f, 0.047f);
-
-        lightingShader.setVec3("material.ambient", color);
-        lightingShader.setVec3("material.diffuse", color);
-        lightingShader.setVec3("material.specular", color);
-        lightingShader.setFloat("material.shininess", 32.0f);
-
-        lightingShader.setMat4("model", model);
-        //ourShader.setVec4("color", glm::vec4(0.6f, 0.243f, 0.047f, 1.0f));
-
-
-
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-
-        float y = 0.0;
-
-        for (int i = 1; i < 7; i++)
+        if (moveCar) {
+            carWheelMatrix = glm::translate(identityMatrix, glm::vec3(moving, 0.0f, 0.0f));
+            carLightPositions[0].x = carlightleftx + moving;
+            carLightPositions[1].x = carlightrightx + moving;
+        }
+        else
         {
-            //book for shelf 1
-
-            lightingShader.use();
-            translateMatrix = glm::translate(identityMatrix, glm::vec3(1.395f, y, 0.525f));
-
-            scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.4, 0.15, 0.35));
-
-            model = translateMatrix * scaleMatrix;
-
-            color = glm::vec3(0.427f, y * 0.498f, y + 0.592f);
-
-            lightingShader.setVec3("material.ambient", color);
-            lightingShader.setVec3("material.diffuse", color);
-            lightingShader.setVec3("material.specular", color);
-            lightingShader.setFloat("material.shininess", 32.0f);
-
-            lightingShader.setMat4("model", model);
-            //ourShader.setVec4("color", glm::vec4(0.427f, y * 0.498f, 0.592f, y+0.2));
-
-
-            glBindVertexArray(VAO);
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
-
-            //book for shelf 2
-
-            lightingShader.use();
-            translateMatrix = glm::translate(identityMatrix, glm::vec3(1.395f, y, 0.825f));
-            y += 0.12;
-
-            scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.4, 0.15, 0.35));
-
-            model = translateMatrix * scaleMatrix;
-
-            color = glm::vec3(0.769f, 0.616f, y + 0.655f);
-
-            lightingShader.setVec3("material.ambient", color);
-            lightingShader.setVec3("material.diffuse", color);
-            lightingShader.setVec3("material.specular", color);
-            lightingShader.setFloat("material.shininess", 32.0f);
-
-            lightingShader.setMat4("model", model);
-            //ourShader.setVec4("color", glm::vec4(0.769f, 0.616f, 0.655f, y + 0.2));
-
-
-            glBindVertexArray(VAO);
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
-
+            float stopposition = moving;
+            carWheelMatrix = glm::translate(identityMatrix, glm::vec3(stopposition, 0.0f, 0.0f));
+            carLightPositions[0].x = carlightleftx + stopposition;
+            carLightPositions[1].x = carlightrightx + stopposition;
         }
 
-        //floor
 
+        
+       
+
+        drawCarPart(lightingShader, VAO, VAO2, identityMatrix, model, carWheelMatrix, ourShader);
+        rotateAngle = 90;
+        glm::mat4 rotationx = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+        rotateAngle = 90;
+        rotationZ = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+        scaleMatrix = glm::scale(identityMatrix, glm::vec3(3.0f, 3.0f, 3.0f));
+
+        model = translateMatrix * rotationZ *rotationx * scaleMatrix;
+        drawCarpart2(lightingShader, VAO, VAO2, identityMatrix, model, carWheelMatrix);
+
+
+        //Road
         lightingShader.use();
-
-        translateMatrix = glm::translate(identityMatrix, glm::vec3(-2.0f, -1.625f, -0.01f));
-
-        scaleMatrix = glm::scale(identityMatrix, glm::vec3(8, 6.5, 0.02));
-
-        model = translateMatrix * scaleMatrix;
-
-        color = glm::vec3(0.612f, 0.71f, 0.694f);
+        color = glm::vec3(0.231f, 0.231f, 0.204f);
+        translateMatrix = glm::translate(identityMatrix, glm::vec3(-5.0, -7.6, -0.05));
+        scaleMatrix = glm::scale(identityMatrix, glm::vec3(35, 12.0, 0.01));
+        model = translateMatrix *scaleMatrix;
+        lightingShader.setMat4("model", model);
 
         lightingShader.setVec3("material.ambient", color);
         lightingShader.setVec3("material.diffuse", color);
         lightingShader.setVec3("material.specular", color);
         lightingShader.setFloat("material.shininess", 32.0f);
-
-
-        lightingShader.setMat4("model", model);
-        //ourShader.setVec4("color", glm::vec4(0.612f, 0.71f, 0.694f, 1.0f));
-
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
-        //draw Fan
+        
+        //ROAD DIVIDER
+        for (int i = 0; i < 9 ; i++)
+        {
+            float dividerx = -5.0 + (i * 2.0);
+            lightingShader.use();
+            color = glm::vec3(0.8f, 0.9f, 0.8f);
+            translateMatrix = glm::translate(identityMatrix, glm::vec3(dividerx, -4.5, -0.05));
+            scaleMatrix = glm::scale(identityMatrix, glm::vec3(1.5, 0.4, 0.02));
+            model = translateMatrix * scaleMatrix;
+            lightingShader.setMat4("model", model);
+
+            lightingShader.setVec3("material.ambient", color);
+            lightingShader.setVec3("material.diffuse", color);
+            lightingShader.setVec3("material.specular", color);
+            lightingShader.setFloat("material.shininess", 32.0f);
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
+
+        // Lampposts
+        for (int i = 0; i < 6; i++) {
+            // Calculate the position of each lamppost along the road
+            float lampX = -4.75 + (i * 3.3); // Place lampposts further apart than dividers
+            float lampY = -7.6;            // Same y-level as the road
+            float lampZ = -0.05;           // Slightly above the road
+
+            // Vertical pole of the lamppost
+            lightingShader.use();
+            color = glm::vec3(0.3f, 0.3f, 0.3f); // Dark gray color for the pole
+            translateMatrix = glm::translate(identityMatrix, glm::vec3(lampX, lampY, lampZ));
+            scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.2, 0.2, 5.0)); // Tall and thin pole
+            model = translateMatrix * scaleMatrix;
+            lightingShader.setMat4("model", model);
+            lightingShader.setVec3("material.ambient", color);
+            lightingShader.setVec3("material.diffuse", color);
+            lightingShader.setVec3("material.specular", color);
+            lightingShader.setFloat("material.shininess", 32.0f);
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+
+            // Horizontal arm of the lamppost
+            lightingShader.use();
+            color = glm::vec3(0.4f, 0.4f, 0.4f); // Slightly lighter gray for the arm
+            translateMatrix = glm::translate(identityMatrix, glm::vec3(lampX, lampY, lampZ + 2.45)); // Top of the pole
+            scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.2, 1.5, 0.2)); // Short horizontal arm
+            model = translateMatrix * scaleMatrix;
+            lightingShader.setMat4("model", model);
+            lightingShader.setVec3("material.ambient", color);
+            lightingShader.setVec3("material.diffuse", color);
+            lightingShader.setVec3("material.specular", color);
+            lightingShader.setFloat("material.shininess", 32.0f);
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+
+            // Lamp (light source)
+
+            glm::vec3 lightPos(lampX, lampY + 0.75, lampZ + 2.47); // Lamp bulb position
+            glm::vec3 lightDir(0.0f, 0.0f, -1.0f);               // Pointing downward
 
 
-        //rotationMatrix = glm::rotate(identityMatrix, glm::radians(speed), glm::vec3(0.0f, 0.0f, 1.0f));
-        rotationMatrix = myRotate(glm::radians(speed), glm::vec3(0.0, 0.0, 1.0));
-        modelCenter = rotationMatrix;
-        drawFan(lightingShader, identityMatrix, VAO, VAO2, modelCenter);
+            // Spotlight uniform setup
+            std::string idx = std::to_string(i);
+            lightingShader.setVec3("spotLights[" + idx + "].position", lightPos);
+            lightingShader.setVec3("spotLights[" + idx + "].direction", lightDir);
+            lightingShader.setVec3("spotLights[" + idx + "].ambient", 0.5f, 0.5f, 0.5f);
+            lightingShader.setVec3("spotLights[" + idx + "].diffuse", 0.8f, 0.8f, 0.8f);
+            lightingShader.setVec3("spotLights[" + idx + "].specular", 1.0f, 1.0f, 1.0f);
+            lightingShader.setFloat("spotLights[" + idx + "].k_c", 1.0f);
+            lightingShader.setFloat("spotLights[" + idx + "].k_l", 0.09f);
+            lightingShader.setFloat("spotLights[" + idx + "].k_q", 0.032f);
+            lightingShader.setFloat("spotLights[" + idx + "].cos_theta", glm::cos(glm::radians(60.0f)));
+            lightingShader.setBool("spotLightsOn[" + idx + "]", spotLightOn);
+
+            lightingShader.use();
+            color = glm::vec3(1.0f, 1.0f, 0.8f); // Warm yellowish-white light
+            translateMatrix = glm::translate(identityMatrix, glm::vec3(lampX , lampY + 0.75, lampZ + 2.45)); // End of the arm
+            scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.2, 0.5, 0.2)); // Small cube for the lamp
+            model = translateMatrix * scaleMatrix;
+            lightingShader.setMat4("model", model);
+            lightingShader.setVec3("material.ambient", color);
+            lightingShader.setVec3("material.diffuse", color);
+            lightingShader.setVec3("material.specular", color);
+            lightingShader.setFloat("material.shininess", 64.0f);
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
+
+
+
 
         if (fanon)
         {
             speed -= 1;
+        }
+
+        if (moveCar)
+        {
+            moving -= 0.01;
+            car_wheel_anglee -= 3;
+            if (moving < -3.5)
+            {
+                moving = 12;
+            }
         }
 
 
@@ -878,6 +952,49 @@ void processInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, true);
 
 
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        camera.ProcessKeyboard(RIGHT, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+        camera.ProcessKeyboard(UP, deltaTime); // Fly upwards
+    }
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+        camera.ProcessKeyboard(DOWN, deltaTime); // Fly downwards
+    }
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+    {
+        camera.ProcessKeyboard(YAW_L, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+    {
+        camera.ProcessKeyboard(YAW_R, deltaTime);
+    }
+    // Pitch (vertical rotation)
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
+        camera.ProcessKeyboard(PITCH_UP, deltaTime); // Pitch up
+    }
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
+        camera.ProcessKeyboard(PITCH_DOWN, deltaTime); // Pitch down
+    }
+
+    // Roll (rotation around the forward axis)
+    if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
+        camera.ProcessKeyboard(ROLL_R, deltaTime); // Roll right
+    }
+    if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) {
+        camera.ProcessKeyboard(ROLL_L, deltaTime); // Roll left
+    }
+
+/*
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
         basic_camera.move(BACKWARD, deltaTime);
 
@@ -927,27 +1044,6 @@ void processInput(GLFWwindow* window)
         basic_camera.eye += cameraSpeed * basic_camera.direction;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) translate_Y += 0.001;
-    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) translate_Y -= 0.001;
-    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) translate_X += 0.001;
-    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) translate_X -= 0.001;
-    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) translate_Z += 0.001;
-    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) translate_Z -= 0.001;
-
-
-    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-    {
-        rotateAngle_X += 0.5;
-        rotateAxis_X = 1.0;
-        rotateAxis_Y = 0.0;
-        rotateAxis_Z = 0.0;
-    }
-
-
-    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
-    {
-        rotateAngle_Z += 0.5;
-    }
 
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
     {
@@ -980,6 +1076,39 @@ void processInput(GLFWwindow* window)
         basic_camera.eye = glm::vec3(eyeX, eyeY, eyeZ);
     }
 
+    if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
+    {
+        basic_camera.changeViewUpVector(glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
+    {
+        basic_camera.changeViewUpVector(glm::vec3(0.0f, 0.0f, 1.0f));
+    }
+
+*/
+
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) translate_Y += 0.001;
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) translate_Y -= 0.001;
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) translate_X += 0.001;
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) translate_X -= 0.001;
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) translate_Z += 0.001;
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) translate_Z -= 0.001;
+
+
+    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+    {
+        rotateAngle_X += 0.5;
+        rotateAxis_X = 1.0;
+        rotateAxis_Y = 0.0;
+        rotateAxis_Z = 0.0;
+    }
+
+
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+    {
+        rotateAngle_Z += 0.5;
+    }
+
 
 
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
@@ -1008,6 +1137,8 @@ void processInput(GLFWwindow* window)
         }
     }
 
+
+
     if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
         spotLightOn = !spotLightOn;
     }
@@ -1018,12 +1149,15 @@ void processInput(GLFWwindow* window)
             pointlight1.turnAmbientOff();
 
             pointlight2.turnAmbientOff();
+
         }
         else {
 
             pointlight1.turnAmbientOn();
 
             pointlight2.turnAmbientOn();
+            //carLightLeft.turnAmbientOn();
+            //carLightRight.turnAmbientOn();
         }
     }
 
@@ -1033,12 +1167,18 @@ void processInput(GLFWwindow* window)
             pointlight1.turnDiffuseOff();
 
             pointlight2.turnDiffuseOff();
+            //carLightLeft.turnDiffuseOff();
+            //carLightRight.turnDiffuseOff();
+
         }
         else {
 
             pointlight1.turnDiffuseOn();
+            //carLightLeft.turnDiffuseOn();
 
             pointlight2.turnDiffuseOn();
+            //carLightRight.turnDiffuseOn();
+
         }
     }
 
@@ -1046,16 +1186,63 @@ void processInput(GLFWwindow* window)
         if (pointlight1.specularOn > 0 || pointlight2.specularOn > 0) {
 
             pointlight1.turnSpecularOff();
+            //carLightLeft.turnSpecularOff();
 
             pointlight2.turnSpecularOff();
+            //carLightRight.turnSpecularOff();
+
         }
         else {
 
             pointlight1.turnSpecularOn();
+            //carLightLeft.turnSpecularOn();
 
             pointlight2.turnSpecularOn();
+            //carLightRight.turnSpecularOn();
         }
     }
+
+
+
+    //if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
+    //    if (carLightLeft.ambientOn > 0 && carLightLeft.diffuseOn > 0 && carLightLeft.specularOn > 0) {
+    //        carLightLeft.turnOff();
+    //        point1 = false;
+    //    }
+    //    else {
+    //        carLightLeft.turnOn();
+    //        point1 = true;
+    //    }
+    //}
+
+    //if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
+    //    if (carLightRight.ambientOn > 0 && carLightRight.diffuseOn > 0 && carLightRight.specularOn > 0) {
+    //        carLightRight.turnOff();
+    //        point2 = false;
+    //    }
+    //    else {
+    //        carLightRight.turnOn();
+    //        point2 = true;
+    //    }
+    //}
+    //if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS) {
+    //    if (carLightLeft.ambientOn > 0 && carLightLeft.diffuseOn > 0 && carLightLeft.specularOn > 0) {
+    //        carLightLeft.turnOff();
+    //        point1 = false;
+    //    }
+    //    else {
+    //        carLightLeft.turnOn();
+    //        point1 = true;
+    //    }
+    //    if (carLightRight.ambientOn > 0 && carLightRight.diffuseOn > 0 && carLightRight.specularOn > 0) {
+    //        carLightRight.turnOff();
+    //        point2 = false;
+    //    }
+    //    else {
+    //        carLightRight.turnOn();
+    //        point2 = true;
+    //    }
+    //}
 
 
     /*if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
@@ -1083,15 +1270,21 @@ void processInput(GLFWwindow* window)
         basic_camera.changeViewUpVector(glm::vec3(1.0f, 0.0f, 0.0f));
     }*/
 
-    if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS)
     {
-        basic_camera.changeViewUpVector(glm::vec3(0.0f, 1.0f, 0.0f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
-    {
-        basic_camera.changeViewUpVector(glm::vec3(0.0f, 0.0f, 1.0f));
+        if (moveCar)
+            moveCar = false;
+        else
+            moveCar = true;
     }
 
+    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+    {
+        if (CarHeadLight)
+            CarHeadLight = false;
+        else
+            CarHeadLight = true;
+    }
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
@@ -1140,7 +1333,9 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    basic_camera.ProcessMouseScroll(static_cast<float>(yoffset));
+
+    //basic_camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
 // The parentTrans parameter is here for hiererchical modeling,
@@ -1333,6 +1528,37 @@ void drawChair(Shader ourShader, glm::mat4 identityMatrix, unsigned int VAO, glm
     glBindVertexArray(0);
 }
 
+
+void drawTV(Shader lightingShader, glm::mat4 identityMatrix, unsigned int VAO, glm::mat4 Model_Center)
+{
+
+    glm::mat4 translateMatrix, rotationMatrix, scaleMatrix, model;
+    glm::vec3 color;
+    //tv
+
+    lightingShader.use();
+
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.2f, 1.45f, 0.475f));
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(1.6, 0.05, 1));
+
+    model = Model_Center * translateMatrix * scaleMatrix;
+
+    color = glm::vec3(0.294f, 0.23f, 0.18f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+    //ourShader.setVec4("color", glm::vec4(0.294f, 0.23f, 0.18f, 1.0f));
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
+
+
 void drawTable(Shader ourShader, glm::mat4 identityMatrix, unsigned int VAO, glm::mat4 Model_Center)
 {
     glm::mat4 translateMatrix, rotationMatrix, scaleMatrix, model;
@@ -1469,6 +1695,120 @@ void drawTable(Shader ourShader, glm::mat4 identityMatrix, unsigned int VAO, glm
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+void drawBookShelf(Shader lightingShader, glm::mat4 identityMatrix, unsigned int VAO, glm::mat4 Model_Center)
+{
+    glm::mat4 translateMatrix, rotationMatrix, scaleMatrix, modelCenter, model;
+    glm::vec3 color;
+
+    //book shelf 1
+
+    lightingShader.use();
+
+
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(1.395f, 0.0f, 0.5f));
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.4, 1.4, 0.05));
+
+    model = Model_Center * translateMatrix * scaleMatrix;
+
+    color = glm::vec3(0.6f, 0.243f, 0.047f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+    //ourShader.setVec4("color", glm::vec4(0.6f, 0.243f, 0.047f, 1.0f));
+
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+    //book shelf 2
+
+    lightingShader.use();
+
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(1.395f, 0.0f, 0.8f));
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.4, 1.4, 0.05));
+
+    model = Model_Center * translateMatrix * scaleMatrix;
+
+    color = glm::vec3(0.6f, 0.243f, 0.047f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+    //ourShader.setVec4("color", glm::vec4(0.6f, 0.243f, 0.047f, 1.0f));
+
+
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    float y = 0.0;
+
+    for (int i = 1; i < 7; i++)
+    {
+        //book for shelf 1
+
+        lightingShader.use();
+        translateMatrix = glm::translate(identityMatrix, glm::vec3(1.395f, y, 0.525f));
+
+        scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.4, 0.15, 0.35));
+
+        model = Model_Center * translateMatrix * scaleMatrix;
+
+        color = glm::vec3(0.427f, y * 0.498f, y + 0.592f);
+
+        lightingShader.setVec3("material.ambient", color);
+        lightingShader.setVec3("material.diffuse", color);
+        lightingShader.setVec3("material.specular", color);
+        lightingShader.setFloat("material.shininess", 32.0f);
+
+        lightingShader.setMat4("model", model);
+        //ourShader.setVec4("color", glm::vec4(0.427f, y * 0.498f, 0.592f, y+0.2));
+
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+        //book for shelf 2
+
+        lightingShader.use();
+        translateMatrix = glm::translate(identityMatrix, glm::vec3(1.395f, y, 0.825f));
+        y += 0.12;
+
+        scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.4, 0.15, 0.35));
+
+        model = Model_Center * translateMatrix * scaleMatrix;
+
+        color = glm::vec3(0.769f, 0.616f, y + 0.655f);
+
+        lightingShader.setVec3("material.ambient", color);
+        lightingShader.setVec3("material.diffuse", color);
+        lightingShader.setVec3("material.specular", color);
+        lightingShader.setFloat("material.shininess", 32.0f);
+
+        lightingShader.setMat4("model", model);
+        //ourShader.setVec4("color", glm::vec4(0.769f, 0.616f, 0.655f, y + 0.2));
+
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+    }
 }
 
 void drawTableandChair(Shader  ourShader, glm::mat4 identityMatrix, unsigned int VAO, glm::mat4 Model_Modify)
@@ -1825,7 +2165,7 @@ void drawAlmira(Shader  ourShader, glm::mat4 identityMatrix, unsigned int VAO, g
 
         model = Model_Modify * translateMatrix * scaleMatrix;
 
-        color = glm::vec3(0.941f, 0.937f, 0.859f);
+        color = glm::vec3(0.835f, 0.835f, 0.835f);
 
         ourShader.setVec3("material.ambient", color);
         ourShader.setVec3("material.diffuse", color);
@@ -1884,31 +2224,47 @@ void drawAlmira(Shader  ourShader, glm::mat4 identityMatrix, unsigned int VAO, g
 }
 
 
-void drawCylender(Shader shaderProgram, unsigned int VAO, glm::mat4 parentTrans, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scX, float scY, float scZ)
+
+void drawCylender(Shader shaderProgram, unsigned int VAO, glm::mat4 parentTrans, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scX, float scY, float scZ, glm::mat4 modelcenter)
 {
     shaderProgram.use();
+    glm::vec3 color;
 
-    glm::mat4 translateMatrix, rotateXMatrix, rotateYMatrix, rotateZMatrix, model, modelCentered;
+    glm::mat4 translateMatrix, rotationMatrix, rotateXMatrix, rotateYMatrix, rotateZMatrix, scaleMatrix, model, rotating_in_own;
     translateMatrix = glm::translate(parentTrans, glm::vec3(posX, posY, posZ));
-    //rotateXMatrix = glm::rotate(translateMatrix, glm::radians(rotX), glm::vec3(1.0f, 0.0f, 0.0f));
-    rotateXMatrix = myRotate(glm::radians(-rotX), glm::vec3(1.0, 0.0, 0.0));
-    //rotateYMatrix = glm::rotate(rotateXMatrix, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
-    rotateYMatrix = myRotate(glm::radians(-rotY), glm::vec3(0.0, 1.0, 0.0));
-    //rotateZMatrix = glm::rotate(rotateYMatrix, glm::radians(rotZ), glm::vec3(0.0f, 0.0f, 1.0f));
-    rotateZMatrix = myRotate(glm::radians(-rotZ), glm::vec3(0.0, 0.0, 1.0));
-    model = glm::scale(rotateZMatrix, glm::vec3(scX, scY, scZ));
-    modelCentered = glm::translate(model, glm::vec3(-0.25, -0.25, -0.25));
+    rotateXMatrix = glm::rotate(parentTrans, glm::radians(rotX), glm::vec3(1.0f, 0.0f, 0.0f));
+    //rotateYMatrix = glm::rotate(parentTrans, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
+    //rotateZMatrix = glm::rotate(parentTrans, glm::radians(rotZ), glm::vec3(0.0f, 0.0f, 1.0f));
+    scaleMatrix = glm::scale(parentTrans, glm::vec3(scX, scY, scZ));
+    rotationMatrix = rotateXMatrix;
 
-    shaderProgram.setMat4("model", modelCentered);
+    if (moveCar)
+    {
+        rotating_in_own = glm::rotate(parentTrans, glm::radians(car_wheel_anglee), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = modelcenter * translateMatrix * rotationMatrix * rotating_in_own * scaleMatrix;
+    }
+    else
+        model = modelcenter * translateMatrix * rotationMatrix * scaleMatrix;
+
+    color = glm::vec3(0.82f, 0.569f, 0.314f);
+
+    shaderProgram.setMat4("model", model);
+
+    // Set material properties
+    
+    shaderProgram.setVec3("material.ambient", color);
+    shaderProgram.setVec3("material.diffuse", color);
+    shaderProgram.setVec3("material.specular", color);
+    shaderProgram.setFloat("material.shininess", 4.0f);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLE_FAN, 15, GL_UNSIGNED_INT, 0);
     glDrawElements(GL_TRIANGLE_FAN, 15, GL_UNSIGNED_INT, (const void*)(15 * sizeof(unsigned int)));
     glDrawElements(GL_TRIANGLE_FAN, 6, GL_UNSIGNED_INT, (const void*)(30 * sizeof(unsigned int)));
     glDrawElements(GL_TRIANGLE_STRIP, 90, GL_UNSIGNED_INT, (const void*)(36 * sizeof(unsigned int)));
-    //glDrawElements(GL_TRIANGLE_FAN, 30, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
+
 
 glm::mat4 myRotate(float angleRadians, const glm::vec3& axis) {
 
@@ -2229,6 +2585,28 @@ void generateSphere(float radius, int sectorCount, int stackCount, std::vector<f
     }
 }
 
+
+
+void drawCylinder(unsigned int& VAO_C, Shader& lightingShader, glm::vec3 color, glm::mat4 model, std::vector<unsigned int>& indices)
+{
+    lightingShader.use();
+
+    // setting up materialistic property
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    float emissiveIntensity = 0.05f; // Adjust this value to increase or decrease the intensity
+    glm::vec3 emissiveColor = glm::vec3(1.0f, 0.0f, 0.0f) * emissiveIntensity;
+
+    //lightingShader.setVec3("material.emissive", emissiveColor);
+
+    lightingShader.setMat4("model", model);
+
+    glBindVertexArray(VAO_C);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
 void calculateVertexNormals(const std::vector<float>& vertices, const std::vector<unsigned int>& indices, std::vector<float>& normals) {
     // Create a container for the accumulated normals
     std::vector<glm::vec3> tempNormals(vertices.size() / 3, glm::vec3(0.0f));
@@ -2264,4 +2642,979 @@ glm::vec3 computeSurfaceNormal(const glm::vec3& a, const glm::vec3& b, const glm
     glm::vec3 edge1 = b - a;
     glm::vec3 edge2 = c - a;
     return glm::normalize(glm::cross(edge1, edge2));
+}
+
+
+void home_wall_door(Shader  ourShader, Shader  lightingShader,  glm::mat4 identityMatrix, unsigned int VAO, unsigned int VAO2, glm::mat4 Model_Modify, float speed)
+{
+    glm::mat4 translateMatrix, rotationMatrix, scaleMatrix, modelCenter, model;
+    glm::vec3 color;
+
+    //floor
+
+    lightingShader.use();
+
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-2.0f, -1.625f, -0.01f));
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(8, 6.5, 0.02));
+
+    model = Model_Modify * translateMatrix * scaleMatrix;
+
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+
+    lightingShader.setMat4("model", model);
+    //ourShader.setVec4("color", glm::vec4(0.612f, 0.71f, 0.694f, 1.0f));
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+    // orientation change from this line. 
+
+    //front
+    glm::vec3 door_cord;
+    glm::vec3 window_cord;
+    bool doorsave = false;
+    bool windowsave = false;
+
+
+    float xcube, ycube = -1.4, zcube;
+    // Loop to draw the 15x15 grid
+    for (int id = 0; id < 15; ++id) {
+        zcube = (0.01) + (id * 0.2);
+
+        for (int jf = 0; jf < 15; ++jf) {
+            xcube = (-1.8) + (jf * 0.2283);
+
+            // Create the model matrix for the current cube
+            translateMatrix = glm::translate(identityMatrix, glm::vec3(xcube, ycube, zcube));
+            scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.4566f, 0.2f, 0.4f));
+            model = Model_Modify * translateMatrix * scaleMatrix;
+
+            // Set the cube material properties
+            lightingShader.use();
+            color = glm::vec3(0.612f, 0.71f, 0.694f); // Same color for all cubes
+            lightingShader.setVec3("material.ambient", color);
+            lightingShader.setVec3("material.diffuse", color);
+            lightingShader.setVec3("material.specular", color);
+            lightingShader.setFloat("material.shininess", 32.0f);
+
+            // Pass the model matrix to the shader
+            lightingShader.setMat4("model", model);
+
+            if (((jf == 3) || (jf == 4) || (jf == 5)) && ((id == 0) || (id == 1) || (id == 2) || (id == 3) || (id == 4) || (id == 5)))
+            {
+                if (!doorsave)
+                {
+                    door_cord = glm::vec3(xcube, ycube, zcube);
+                    doorsave = true;
+                }
+            }
+            else if (((jf == 9) || (jf == 10) || (jf == 11) || (jf == 12)) && ((id == 7) || (id == 8) || (id == 9)))
+            {
+                if (!windowsave)
+                {
+                    window_cord = glm::vec3(xcube, ycube, zcube);
+                    windowsave = true;
+                }
+            }
+            else
+            {
+                // Draw the cube
+                glBindVertexArray(VAO);
+                glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
+            }
+        }
+    }
+
+
+    // door
+    translateMatrix = glm::translate(identityMatrix, door_cord);
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3((0.4566 * 3), 0.2f, (0.4 * 6)));
+    model = Model_Modify * translateMatrix * scaleMatrix;
+
+    // Set the cube material properties
+    lightingShader.use();
+    color = glm::vec3(0.2f, 0.3f, 0.6f); // Same color for all cubes
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+    //ourShader.setVec4("color", glm::vec4(0.612f, 0.71f, 0.694f, 1.0f));
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+    // window 1st half
+    glm::vec3 new_window_cord = window_cord + glm::vec3(0, 0, 0);
+    translateMatrix = glm::translate(identityMatrix, new_window_cord);
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3((0.4566 * 2), 0.1f, (0.4 * 3)));
+    model = Model_Modify * translateMatrix * scaleMatrix;
+
+    // Set the cube material properties
+    lightingShader.use();
+    color = glm::vec3(0.5f, 0.4f, 0.6f); // Same color for all cubes
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+    //ourShader.setVec4("color", glm::vec4(0.612f, 0.71f, 0.694f, 1.0f));
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+    // window 2nd half
+    new_window_cord = window_cord + glm::vec3(0.4566 * 2, 0.05, 0);
+    translateMatrix = glm::translate(identityMatrix, new_window_cord);
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3((0.4566 * 2), 0.1f, (0.4 * 3)));
+    float angleofwindow2nd = 210;
+    rotationMatrix = glm::rotate(identityMatrix, glm::radians(angleofwindow2nd), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = Model_Modify * translateMatrix * rotationMatrix * scaleMatrix;
+
+    // Set the cube material properties
+    lightingShader.use();
+    color = glm::vec3(0.5f, 0.4f, 0.6f); // Same color for all cubes
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+    //ourShader.setVec4("color", glm::vec4(0.612f, 0.71f, 0.694f, 1.0f));
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    //window grill
+
+    for (int i = 0; i < 4; i++)
+    {
+        float incx = (i * 0.25) + 0.05;
+        new_window_cord = window_cord + glm::vec3(incx, 0.03, 0);
+
+        translateMatrix = glm::translate(identityMatrix, new_window_cord);
+        scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.01f, 0.05f, (0.4 * 3)));
+        model = Model_Modify * translateMatrix * scaleMatrix;
+
+        // Set the cube material properties
+        lightingShader.use();
+        color = glm::vec3(0.0f, 0.0f, 0.1f); // Same color for all cubes
+        lightingShader.setVec3("material.ambient", color);
+        lightingShader.setVec3("material.diffuse", color);
+        lightingShader.setVec3("material.specular", color);
+        lightingShader.setFloat("material.shininess", 32.0f);
+
+        lightingShader.setMat4("model", model);
+        //ourShader.setVec4("color", glm::vec4(0.612f, 0.71f, 0.694f, 1.0f));
+
+        glBindVertexArray(VAO2);
+        glDrawElements(GL_TRIANGLE_FAN, 15, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLE_FAN, 15, GL_UNSIGNED_INT, (const void*)(15 * sizeof(unsigned int)));
+        glDrawElements(GL_TRIANGLE_FAN, 6, GL_UNSIGNED_INT, (const void*)(30 * sizeof(unsigned int)));
+        glDrawElements(GL_TRIANGLE_STRIP, 90, GL_UNSIGNED_INT, (const void*)(36 * sizeof(unsigned int)));
+        //glDrawElements(GL_TRIANGLE_FAN, 30, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+        //glBindVertexArray(VAO);
+        //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        //glBindVertexArray(0);
+    }
+
+    // window silling
+    new_window_cord = window_cord + glm::vec3(-0.05, -0.1, 0.6);
+    translateMatrix = glm::translate(identityMatrix, new_window_cord);
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3((0.4566 * 4.5), 0.2f, 0.2));
+    model = Model_Modify * translateMatrix * scaleMatrix;
+
+
+    // Set the cube material properties
+    lightingShader.use();
+    color = glm::vec3(0.1f, 0.8f, 0.9f); // Same color for all cubes
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+    //ourShader.setVec4("color", glm::vec4(0.612f, 0.71f, 0.694f, 1.0f));
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+
+    //home top curve right
+    new_window_cord = window_cord + glm::vec3(-0.4, 0, 2.725);
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(5, 6.5, 0.2));
+    translateMatrix = glm::translate(identityMatrix, new_window_cord);
+    float rotategomeTopAngle = 30;
+    rotationMatrix = glm::rotate(identityMatrix, glm::radians(rotategomeTopAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    model = Model_Modify * translateMatrix * rotationMatrix * scaleMatrix;
+
+
+    lightingShader.use();
+    color = glm::vec3(1.0f, 1.0f, 0.0f); // Same color for all cubes
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+    //home top curve left
+    new_window_cord = window_cord + glm::vec3(-0.3, 0, 2.825);
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(5, 6.5, 0.2));
+    translateMatrix = glm::translate(identityMatrix, new_window_cord);
+    rotategomeTopAngle = 150;
+    rotationMatrix = glm::rotate(identityMatrix, glm::radians(rotategomeTopAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    model = Model_Modify * translateMatrix * rotationMatrix * scaleMatrix;
+
+
+    lightingShader.use();
+    color = glm::vec3(1.0f, 1.0f, 0.0f); // Same color for all cubes
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+
+    //home top triangle
+    new_window_cord = window_cord + glm::vec3(-0.35, -0.0, 1.65);
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(5, 6, 3.5));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.25, -0.25, 0));
+    rotategomeTopAngle = -45;
+    glm::mat4 rotationZaxisMatrix = glm::rotate(identityMatrix, glm::radians(rotategomeTopAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotategomeTopAngle = 60;
+    glm::mat4 rotationXaxisMatrix = glm::rotate(identityMatrix, glm::radians(rotategomeTopAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 translateMatrix2 = glm::translate(identityMatrix, new_window_cord);
+    model = Model_Modify * translateMatrix2 * scaleMatrix * rotationXaxisMatrix * rotationZaxisMatrix * translateMatrix;
+
+
+    lightingShader.use();
+    color = glm::vec3(1.0f, 1.0f, 0.0f); // Same color for all cubes
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+
+    //home bottom triangle
+    new_window_cord = window_cord + glm::vec3(-0.35, 3.0, 1.65);
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(5, 6, 3.5));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.25, -0.25, 0));
+    rotategomeTopAngle = -45;
+    rotationZaxisMatrix = glm::rotate(identityMatrix, glm::radians(rotategomeTopAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotategomeTopAngle = 60;
+    rotationXaxisMatrix = glm::rotate(identityMatrix, glm::radians(rotategomeTopAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+    rotategomeTopAngle = 180;
+    glm::mat4 rotationZaxisMatrix2 = glm::rotate(identityMatrix, glm::radians(rotategomeTopAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+    translateMatrix2 = glm::translate(identityMatrix, new_window_cord);
+
+
+    model = Model_Modify * translateMatrix2 * rotationZaxisMatrix2 * scaleMatrix * rotationXaxisMatrix * rotationZaxisMatrix * translateMatrix;
+
+
+    lightingShader.use();
+    color = glm::vec3(1.0f, 1.0f, 0.0f); // Same color for all cubes
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    //draw Fan
+
+
+    //rotationMatrix = glm::rotate(identityMatrix, glm::radians(speed), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotationMatrix = myRotate(glm::radians(speed), glm::vec3(0.0, 0.0, 1.0));
+    modelCenter = Model_Modify * rotationMatrix;
+    drawFan(lightingShader, identityMatrix, VAO, VAO2, modelCenter);
+}
+
+
+void a_home(Shader  ourShader, Shader  lightingShader, glm::mat4 identityMatrix, unsigned int VAO, unsigned int VAO2, glm::mat4 Model_Modify, float speed)
+{
+
+    glm::mat4 translateMatrix, rotationMatrix, scaleMatrix, modelCenter, model;
+    glm::vec3 color;
+
+    modelCenter = glm::scale(identityMatrix, glm::vec3(0.7, 0.7, 1));
+
+    drawTableandChair(lightingShader, identityMatrix, VAO, modelCenter);
+
+    modelCenter = identityMatrix;
+
+    drawSofa(lightingShader, identityMatrix, VAO, modelCenter);
+    //almira
+
+    //rotationMatrix = glm::rotate(identityMatrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotationMatrix = myRotate(glm::radians(-90.0f), glm::vec3(0.0, 0.0, 1.0));
+
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(.59f, 0.1f, 0.0f));
+    modelCenter = translateMatrix * rotationMatrix * identityMatrix;
+
+    drawAlmira(lightingShader, identityMatrix, VAO, modelCenter, 1);
+
+    //wall
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(9, 8, 2.5));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.8f, +1.0f, 0.0f));
+    model = glm::translate(identityMatrix, glm::vec3(-2.0f, -1.5f, 0.0f));
+
+    modelCenter = model * scaleMatrix * translateMatrix;
+
+    drawAlmira(lightingShader, identityMatrix, VAO, modelCenter, 0);
+
+    // tv cavinet
+
+    //rotationMatrix = glm::rotate(identityMatrix, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotationMatrix = myRotate(glm::radians(-180.0f), glm::vec3(0.0, 0.0, 1.0));
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(4, 1.1, .35));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.8f, +1.0f, 0.0f));
+    model = glm::translate(identityMatrix, glm::vec3(1.0f, 1.5f, 0.0f));
+
+    modelCenter = model * scaleMatrix * rotationMatrix * translateMatrix;
+
+    drawAlmira(lightingShader, identityMatrix, VAO, modelCenter, 1);
+
+    model = identityMatrix;
+    //tv
+    drawTV(lightingShader, identityMatrix, VAO, model);
+
+    //bookshelf
+    model = identityMatrix;
+    drawBookShelf(lightingShader, identityMatrix, VAO, model);
+
+    model = identityMatrix;
+
+    home_wall_door(ourShader, lightingShader, identityMatrix, VAO, VAO2, model, speed);
+}
+
+
+void drawCarPart(Shader lightingShader, unsigned int VAO, unsigned int VAO2, glm::mat4 identityMatrix, glm::mat4 modelCenter, glm::mat4 altogether, Shader ourShader)
+{
+    glm::mat4 translateMatrix, rotationMatrix, rotateXMatrix, rotateYMatrix, rotateZMatrix, scaleMatrix, model;
+    glm::vec3 color;
+    //a bottom lower
+    lightingShader.use();
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.01, .25, 1));
+    model = altogether * modelCenter * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+    //a bottom-middle lower
+    lightingShader.use();
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.01, .25, .5));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.125, 0.125));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+    //a middle lower
+    lightingShader.use();
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.01, .25, 1));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.25, 0));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+    //a top-middle lower 
+    lightingShader.use();
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.01, .25, .5));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.375, 0.125));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+
+    //a top lower
+    lightingShader.use();
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.01, .35, 1));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.5, 0));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.025, 0));
+    model = altogether * translateMatrix * modelCenter;
+
+    float scalex=0.075, scaley=0.015, scalez=0.0625;
+    drawCylender(lightingShader, VAO2, identityMatrix, 0, 0.185, 0.025, 90, 0, 0, scalex, scalez, scalex, model);
+    drawCylender(lightingShader, VAO2, identityMatrix, 0, 0.185, 0.4, 90, 0, 0, scalex, scalez, scalex, model);
+    drawCylender(lightingShader, VAO2, identityMatrix, 0, 0.435, 0.025, 90, 0, 0, scalex, scalez, scalex, model);
+    drawCylender(lightingShader, VAO2, identityMatrix, 0, 0.435, 0.4, 90, 0, 0, scalex, scalez, scalex, model);
+    drawCylender(lightingShader, VAO2, identityMatrix, 0, 0.185, 0.025, 90, 0, 0, 0.01, 0.75, 0.01, model);
+    drawCylender(lightingShader, VAO2, identityMatrix, 0, 0.435, 0.025, 90, 0, 0, 0.01, 0.75, 0.01, model);
+
+    //a lower upper
+    lightingShader.use();
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.01, 1.35, 1));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.125, 0, 0));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+    //a left back
+    lightingShader.use();
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, .25, .01));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-.125, 0, 0));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+    //a left middle
+    lightingShader.use();
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, .25, .01));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-.125, 0.25, 0));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+    //a left top
+    lightingShader.use();
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, .35, .01));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-.125, 0.5, 0));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+
+
+
+    //a right back
+    lightingShader.use();
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, .25, .01));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-.125, 0, .5));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+    //a right middle
+    lightingShader.use();
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, .25, .01));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-.125, 0.25, .5));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+    //right top 
+    lightingShader.use();
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, .35, .01));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-.125, 0.5, .5));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+
+    //a back lower to upper
+    lightingShader.use();
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, 0.01, 1));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.125, 0, 0));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+    //a front lower to upper
+    lightingShader.use();
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, 0.01, 1));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.125, 0.675, 0));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    //simple cube end
+
+
+
+
+    //car Light Left
+    lightingShader.setVec3("spotlightthatemit[0].position", carLightPositions[0].x + 0.7, carLightPositions[0].y + 0.2, carLightPositions[0].z +0.3);
+    lightingShader.setVec3("spotlightthatemit[0].direction", -1.0f, 0.0f, -1.0f);
+    lightingShader.setVec3("spotlightthatemit[0].ambient", 0.5f, 0.5f, 0.5f);
+    lightingShader.setVec3("spotlightthatemit[0].diffuse", 0.8f, 0.8f, 0.8f);
+    lightingShader.setVec3("spotlightthatemit[0].specular", 1.0f, 1.0f, 1.0f);
+    lightingShader.setVec3("spotlightthatemit[0].emissive", 1.0f, 1.0f, 1.0f);
+    lightingShader.setFloat("spotlightthatemit[0].k_c", 1.0f);
+    lightingShader.setFloat("spotlightthatemit[0].k_l", 0.22f);
+    lightingShader.setFloat("spotlightthatemit[0].k_q", 0.20f);
+    lightingShader.setFloat("spotlightthatemit[0].cos_theta", glm::cos(glm::radians(45.0f)));
+
+    lightingShader.setBool("spotlightthatemitOn", CarHeadLight);
+
+
+    lightingShader.use();
+    color = glm::vec3(0.9f, 0.9f,0.9f);
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.05, 0.68, 0.05));
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.02, 0.02, 0.02));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    lightingShader.setMat4("model", model);
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setVec3("material.emissive", 0.03f, 0.03f, 0.03f);
+    lightingShader.setFloat("material.shininess", 64.0f);
+    glBindVertexArray(VAO2);
+    glDrawElements(GL_TRIANGLE_FAN, 15, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLE_FAN, 15, GL_UNSIGNED_INT, (const void*)(15 * sizeof(unsigned int)));
+    glDrawElements(GL_TRIANGLE_FAN, 6, GL_UNSIGNED_INT, (const void*)(30 * sizeof(unsigned int)));
+    glDrawElements(GL_TRIANGLE_STRIP, 90, GL_UNSIGNED_INT, (const void*)(36 * sizeof(unsigned int)));
+    glBindVertexArray(0);
+
+
+    //car Light Right
+    lightingShader.setVec3("spotlightthatemit[1].position", carLightPositions[1].x + 0.5, carLightPositions[1].y , carLightPositions[1].z + 0.2);
+    lightingShader.setVec3("spotlightthatemit[1].direction", -1.0f, 0.0f, -1.0f);
+    lightingShader.setVec3("spotlightthatemit[1].ambient", 0.5f, 0.5f, 0.5f);
+    lightingShader.setVec3("spotlightthatemit[1].diffuse", 0.8f, 0.8f, 0.8f);
+    lightingShader.setVec3("spotlightthatemit[1].specular", 1.0f, 1.0f, 1.0f);
+    lightingShader.setVec3("spotlightthatemit[1].emissive", 1.0f, 1.0f, 1.0f);
+    lightingShader.setFloat("spotlightthatemit[1].k_c", 1.0f);
+    lightingShader.setFloat("spotlightthatemit[1].k_l", 0.22f);
+    lightingShader.setFloat("spotlightthatemit[1].k_q", 0.20f);
+    lightingShader.setFloat("spotlightthatemit[1].cos_theta", glm::cos(glm::radians(45.0f)));
+
+    lightingShader.setBool("spotlightthatemitOn", CarHeadLight);
+
+
+
+    lightingShader.use();
+    color = glm::vec3(0.9f, 0.9f, 0.9f);
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.05, 0.68, 0.45));
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.02, 0.02, 0.02));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    lightingShader.setMat4("model", model);
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setVec3("material.emissive", 0.03f, 0.03f, 0.03f);
+    lightingShader.setFloat("material.shininess", 64.0f);
+    glBindVertexArray(VAO2);
+    glDrawElements(GL_TRIANGLE_FAN, 15, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLE_FAN, 15, GL_UNSIGNED_INT, (const void*)(15 * sizeof(unsigned int)));
+    glDrawElements(GL_TRIANGLE_FAN, 6, GL_UNSIGNED_INT, (const void*)(30 * sizeof(unsigned int)));
+    glDrawElements(GL_TRIANGLE_STRIP, 90, GL_UNSIGNED_INT, (const void*)(36 * sizeof(unsigned int)));
+    glBindVertexArray(0);
+
+    ////car light LEFT
+    //ourShader.use();
+
+
+    //// Set material properties
+
+    ////lightingShader.setVec3("material.ambient", color);
+    ////lightingShader.setVec3("material.diffuse", color);
+    ////lightingShader.setVec3("material.specular", color);
+    ////lightingShader.setFloat("material.shininess", 32.0f);
+
+    //ourShader.setMat4("model", model);
+    //ourShader.setVec4("color", glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
+
+
+
+    //car light RIGHT
+    //ourShader.use();
+    //translateMatrix = glm::translate(identityMatrix, glm::vec3(-0.05, 0.68, 0.45));
+    //scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.02, 0.02, 0.02));
+    //model = altogether * modelCenter * translateMatrix * scaleMatrix;
+    // Set material properties
+
+    //lightingShader.setVec3("material.ambient", color);
+    //lightingShader.setVec3("material.diffuse", color);
+    //lightingShader.setVec3("material.specular", color);
+    //lightingShader.setFloat("material.shininess", 32.0f);
+
+    //ourShader.setMat4("model", model);
+    //ourShader.setVec4("color", glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
+}
+
+
+void drawCarpart2(Shader lightingShader, unsigned int VAO, unsigned int VAO2, glm::mat4 identityMatrix, glm::mat4 modelCenter, glm::mat4 altogether)
+{
+    float rotateAngle;
+    glm::mat4 translateMatrix, rotationMatrix, rotateXMatrix, rotateYMatrix, rotateZMatrix, scaleMatrix, model;
+    glm::vec3 color;
+    //car curve 1
+    lightingShader.use();
+    rotateAngle = -90;
+    rotateYMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+    rotateAngle = 180;
+    rotateZMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotateAngle = -90;
+    rotateXMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, .35, .4));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.125, -0.6));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix * rotateXMatrix * rotateZMatrix * rotateYMatrix;
+
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    //car curve 2
+    lightingShader.use();
+    rotateAngle = -90;
+    rotateYMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+    rotateAngle = 180;
+    rotateZMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotateAngle = -90;
+    rotateXMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, .35, .4));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0.5, 0.125, -0.6));
+    model = altogether * modelCenter * translateMatrix * scaleMatrix * rotateXMatrix * rotateZMatrix * rotateYMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    //car curve 3
+    lightingShader.use();
+    rotateAngle = -90;
+    rotateYMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+    rotateAngle = 180;
+    rotateZMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotateAngle = -90;
+    rotateXMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, .35, .2));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0.5, 0.125, 0));
+    rotateAngle = 180;
+    rotationMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    model = altogether * modelCenter * translateMatrix * rotationMatrix * scaleMatrix * rotateXMatrix * rotateZMatrix * rotateYMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    //car curve 4
+    lightingShader.use();
+    rotateAngle = -90;
+    rotateYMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+    rotateAngle = 180;
+    rotateZMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotateAngle = -90;
+    rotateXMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(.25, .35, .2));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.125, 0));
+    rotateAngle = 180;
+    rotationMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    model = altogether * modelCenter * translateMatrix * rotationMatrix * scaleMatrix * rotateXMatrix * rotateZMatrix * rotateYMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    //car head
+    lightingShader.use();
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(1, .01, 0.605));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.3, -0.4));
+    rotateAngle = 90;
+    rotationMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    model = altogether * modelCenter * translateMatrix * scaleMatrix * rotationMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    //car window front
+    lightingShader.use();
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(1, .01, 0.525));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.125, -0.6));
+    rotateAngle = -40;
+    rotationMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    model = altogether * modelCenter * translateMatrix * rotationMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+    //car window back
+    lightingShader.use();
+
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(1, .01, 0.405));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.125, 0));
+    rotateAngle = -120;
+    rotationMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    model = altogether * modelCenter * translateMatrix * rotationMatrix * scaleMatrix;
+    color = glm::vec3(0.612f, 0.71f, 0.694f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    //car door front
+    lightingShader.use();
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.01, 0.35, 0.60));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0, 0.125, -0.4));
+    rotateAngle = 90;
+    rotationMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    model = altogether * modelCenter * translateMatrix * scaleMatrix * rotationMatrix;
+    color = glm::vec3(0.3f, 0.3f, 0.3f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+    //car door front
+    lightingShader.use();
+    scaleMatrix = glm::scale(identityMatrix, glm::vec3(0.01, 0.35, 0.60));
+    translateMatrix = glm::translate(identityMatrix, glm::vec3(0.5, 0.125, -0.4));
+    rotateAngle = 90;
+    rotationMatrix = glm::rotate(identityMatrix, glm::radians(rotateAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    model = altogether * modelCenter * translateMatrix * scaleMatrix * rotationMatrix;
+    color = glm::vec3(0.3f, 0.3f, 0.3f);
+
+    lightingShader.setVec3("material.ambient", color);
+    lightingShader.setVec3("material.diffuse", color);
+    lightingShader.setVec3("material.specular", color);
+    lightingShader.setFloat("material.shininess", 32.0f);
+
+    lightingShader.setMat4("model", model);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+
+
 }
