@@ -1,0 +1,235 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{000bd9aa-c7f0-4622-9cab-5da44e9202a9}</ProjectGuid>
+    <RootNamespace>Project1</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>E:\TeraBoxDownload\installation-20241022T202825Z-001\opengl\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\TeraBoxDownload\installation-20241022T202825Z-001\opengl\Lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\opengl\glad.c" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Talha.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="army.png" />
+    <Image Include="BackSmallWindow.png" />
+    <Image Include="Bricks051_1K-JPG_Color.jpg" />
+    <Image Include="buildingImage.png" />
+    <Image Include="Bulding2.png" />
+    <Image Include="CarBack.png" />
+    <Image Include="CarFront.png" />
+    <Image Include="CarSide.png" />
+    <Image Include="CarSide2.png" />
+    <Image Include="CarSide3.png" />
+    <Image Include="CarTop.png" />
+    <Image Include="CarTopRotate.png" />
+    <Image Include="cartrack.jpg" />
+    <Image Include="CarWheel.png" />
+    <Image Include="Car_Back_with_window.png" />
+    <Image Include="Car_Front_side_angle.png" />
+    <Image Include="Car_Front_window.png" />
+    <Image Include="ChristmasTreeOrnament002_1K-JPG_Color.jpg" />
+    <Image Include="DiamondPlate008C_1K-JPG_Color.jpg" />
+    <Image Include="CarDoor.png" />
+    <Image Include="Door_Texture.png" />
+    <Image Include="earth2048.bmp" />
+    <Image Include="Fabric004_1K-JPG_Color.jpg" />
+    <Image Include="Fabric008_1K-JPG_Color.jpg" />
+    <Image Include="Fabric015_1K-JPG_Color.jpg" />
+    <Image Include="Fabric020_1K-JPG_Color.jpg" />
+    <Image Include="Fabric022_1K-JPG_Color.jpg" />
+    <Image Include="Fabric051_1K-JPG_Color.jpg" />
+    <Image Include="Footpath.jpg" />
+    <Image Include="Footpath.png" />
+    <Image Include="Helipad.png" />
+    <Image Include="highwayRowa.jpg" />
+    <Image Include="Home_Front_wall.jpg" />
+    <Image Include="LeftWindow.png" />
+    <Image Include="map.jpg" />
+    <Image Include="Metal001_1K-JPG_Color.jpg" />
+    <Image Include="Metal009_1K-JPG_Color.jpg" />
+    <Image Include="MetalPlates003_1K-JPG_Color.jpg" />
+    <Image Include="PavingStones136_1K-JPG_Color.jpg" />
+    <Image Include="Porcelain003_1K-JPG_Color.jpg" />
+    <Image Include="PureRed.png" />
+    <Image Include="RightWindow.png" />
+    <Image Include="Roadimage.jpg" />
+    <Image Include="ThatchedRoof001A_1K-JPG_Color.jpg" />
+    <Image Include="Tiles108_1K-JPG_Color.jpg" />
+    <Image Include="TreeRoot.png" />
+    <Image Include="TreeTexture.png" />
+    <Image Include="wall.jpg" />
+    <Image Include="wine.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="bush.h" />
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="cube.h" />
+    <ClInclude Include="curve.h" />
+    <ClInclude Include="cylinder.h" />
+    <ClInclude Include="DrawEquipments.h" />
+    <ClInclude Include="GrassField.h" />
+    <ClInclude Include="original_tree.h" />
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="Shape.h" />
+    <ClInclude Include="sphere.h" />
+    <ClInclude Include="sphere2.h" />
+    <ClInclude Include="Sphi.h" />
+    <ClInclude Include="stadium.h" />
+    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="torus.h" />
+    <ClInclude Include="tree.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="colorNoTexture.fs" />
+    <None Include="colorNoTexture.vs" />
+    <None Include="lightShader.fs" />
+    <None Include="lightShader.vs" />
+    <None Include="shader.fs" />
+    <None Include="shader.vs" />
+    <None Include="textureColorGouraud.fs" />
+    <None Include="textureColorGouraud.vs" />
+    <None Include="textureColorNoLight.fs" />
+    <None Include="textureColorNoLight.vs" />
+    <None Include="textureColorPhong.fs" />
+    <None Include="textureColorPhong.vs" />
+    <None Include="textureNoColorGouraud.fs" />
+    <None Include="textureNoColorGouraud.vs" />
+    <None Include="textureNoColorNoLight.fs" />
+    <None Include="textureNoColorNoLight.vs" />
+    <None Include="textureNoColorPhong.fs" />
+    <None Include="textureNoColorPhong.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ferris_wheel_points.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

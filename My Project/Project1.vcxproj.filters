@@ -1,0 +1,289 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\NewFilter1">
+      <UniqueIdentifier>{b7a6fdeb-6227-4023-98fa-ef7553a885bf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Talha.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\opengl\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Bricks051_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="ChristmasTreeOrnament002_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="DiamondPlate008C_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="earth2048.bmp">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Fabric004_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Fabric008_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Fabric015_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Fabric020_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Fabric022_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Fabric051_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="map.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Metal001_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Metal009_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="MetalPlates003_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="PavingStones136_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Porcelain003_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="ThatchedRoof001A_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Tiles108_1K-JPG_Color.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="wall.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="CarWheel.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="cartrack.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="CarTop.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="CarTopRotate.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="CarFront.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="CarBack.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="CarSide.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="CarSide2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="CarSide3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Car_Back_with_window.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="PureRed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="BackSmallWindow.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="CarDoor.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Car_Front_side_angle.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Car_Front_window.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="LeftWindow.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="RightWindow.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Door_Texture.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Home_Front_wall.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="highwayRowa.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Roadimage.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="TreeTexture.png">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="army.png">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="TreeRoot.png">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="buildingImage.png">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Helipad.png">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="Footpath.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Footpath.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Bulding2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="wine.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="camera.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cube.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cylinder.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawEquipments.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Shape.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sphere.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stadium.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bush.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="original_tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="torus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sphere2.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GrassField.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="colorNoTexture.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="colorNoTexture.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="lightShader.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="lightShader.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shader.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shader.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureColorGouraud.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureColorGouraud.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureColorNoLight.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureColorNoLight.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureColorPhong.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureColorPhong.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureNoColorGouraud.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureNoColorGouraud.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureNoColorNoLight.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureNoColorNoLight.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureNoColorPhong.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="textureNoColorPhong.vs">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ferris_wheel_points.txt" />
+  </ItemGroup>
+</Project>
